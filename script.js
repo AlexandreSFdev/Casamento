@@ -9,6 +9,7 @@ let galleryForm;
 let galleryInput;
 let galleryGrid;
 let galleryMessage;
+let pendingMedia = null; // { blob, type, name }
 
 const gifts = [
   { id: 'anel', title: 'Conjunto de Aliança', description: 'Alianças de prata com acabamento acetinado.' },
@@ -313,11 +314,8 @@ function bindPageElements() {
     mediaInput.addEventListener('change', function (e) {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-      // Save file to IndexedDB and attach to testimonial draft
-      addMediaBlob(file).then((mediaId) => {
-        // store media id temporarily on form dataset
-        testimonialForm.dataset.mediaId = mediaId;
-      });
+      // show preview and wait for confirmation before saving to IndexedDB
+      showMediaPreview(file, file.type, file.name);
     });
   }
 
@@ -345,8 +343,10 @@ function bindPageElements() {
       openRecorder('video');
     });
   }
-  const exportBtn = document.getElementById('export-media-btn');
-  if (exportBtn) exportBtn.addEventListener('click', exportAllMedia);
+  const confirmBtn = document.getElementById('confirm-media');
+  const removeBtn = document.getElementById('remove-media');
+  if (confirmBtn) confirmBtn.addEventListener('click', confirmPendingMedia);
+  if (removeBtn) removeBtn.addEventListener('click', clearPendingMedia);
   if (galleryForm) galleryForm.addEventListener('submit', handleGallerySubmit);
 
   if (rsvpForm) {
@@ -500,12 +500,9 @@ function openRecorder(kind) {
     recorder.ondataavailable = (e) => chunks.push(e.data);
     recorder.onstop = async () => {
       const blob = new Blob(chunks, { type: chunks[0]?.type || (kind === 'video' ? 'video/webm' : 'audio/webm') });
-      const mediaId = await addMediaBlob(new File([blob], `${kind}-${Date.now()}.${kind === 'video' ? 'webm' : 'webm'}`, { type: blob.type }));
-      if (testimonialForm) testimonialForm.dataset.mediaId = mediaId;
-      if (testimonialMessage) {
-        testimonialMessage.textContent = 'Mídia gravada com sucesso. Envie o depoimento para publicar.';
-        testimonialMessage.style.color = '#c5e8c5';
-      }
+      const name = `${kind}-${Date.now()}.${kind === 'video' ? 'webm' : 'webm'}`;
+      // keep pending until user confirms
+      showMediaPreview(new File([blob], name, { type: blob.type }), blob.type, name);
     };
 
     recorder.start();
@@ -527,6 +524,82 @@ function openRecorder(kind) {
     alert('Não foi possível acessar o microfone/câmera: ' + err.message);
   });
 }
+
+function showMediaPreview(file, type, name) {
+  pendingMedia = { file, type, name };
+  const preview = document.getElementById('media-preview');
+  const area = document.getElementById('media-preview-area');
+  if (!preview || !area) return;
+  area.innerHTML = '';
+  // image
+  if (type && type.startsWith('image')) {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.style.maxWidth = '100%';
+    area.appendChild(img);
+  } else if (type && type.startsWith('audio')) {
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.src = URL.createObjectURL(file);
+    area.appendChild(audio);
+  } else if (type && type.startsWith('video')) {
+    const video = document.createElement('video');
+    video.controls = true;
+    video.src = URL.createObjectURL(file);
+    video.style.maxWidth = '100%';
+    area.appendChild(video);
+  } else {
+    const p = document.createElement('p');
+    p.textContent = `Arquivo: ${name}`;
+    area.appendChild(p);
+  }
+  preview.style.display = 'block';
+}
+
+function clearPendingMedia() {
+  pendingMedia = null;
+  const preview = document.getElementById('media-preview');
+  const area = document.getElementById('media-preview-area');
+  if (area) area.innerHTML = '';
+  if (preview) preview.style.display = 'none';
+  // clear file input
+  const mediaInput = document.getElementById('media-input');
+  if (mediaInput) mediaInput.value = '';
+  // remove temporary reference on form
+  if (testimonialForm) delete testimonialForm.dataset.mediaId;
+}
+
+async function confirmPendingMedia() {
+  if (!pendingMedia) return alert('Nenhuma mídia para confirmar.');
+  try {
+    const file = pendingMedia.file;
+    const mediaId = await addMediaBlob(file);
+    if (testimonialForm) testimonialForm.dataset.mediaId = mediaId;
+    if (testimonialMessage) {
+      testimonialMessage.textContent = 'Mídia anexada ao rascunho. Agora envie seu depoimento.';
+      testimonialMessage.style.color = '#c5e8c5';
+    }
+    // clear preview but keep form.dataset.mediaId
+    const preview = document.getElementById('media-preview');
+    const area = document.getElementById('media-preview-area');
+    if (area) area.innerHTML = '';
+    if (preview) preview.style.display = 'none';
+    pendingMedia = null;
+  } catch (err) {
+    alert('Falha ao salvar mídia: ' + (err && err.message));
+  }
+}
+
+/* Navigation hamburger toggle */
+document.addEventListener('DOMContentLoaded', function () {
+  const toggle = document.getElementById('nav-toggle');
+  const links = document.querySelector('.nav-links');
+  if (toggle && links) {
+    toggle.addEventListener('click', () => {
+      links.classList.toggle('open');
+    });
+  }
+});
 
 function loadPagePartial(name) {
   const container = document.getElementById('app');

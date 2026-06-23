@@ -13,13 +13,21 @@
       </div>
       <div class="form-row">
         <label>Anexar áudio ou vídeo</label>
-        <div class="media-controls">
-          <button type="button" id="record-audio" class="button">Gravar áudio</button>
-          <button type="button" id="record-video" class="button">Gravar vídeo</button>
-          <button type="button" id="export-media-btn" class="button" title="Baixar todas as mídias (backup)">Exportar mídias</button>
-          <input type="file" id="media-input" accept="audio/*,video/*" capture style="display:none" />
-        </div>
-        <p class="muted">Você pode gravar diretamente pelo celular ou enviar um arquivo.</p>
+          <div class="media-controls">
+            <button type="button" id="record-audio" class="button">Gravar áudio</button>
+            <button type="button" id="record-video" class="button">Gravar vídeo</button>
+            <label class="button" for="media-input" style="cursor:pointer;">Enviar arquivo</label>
+            <input type="file" id="media-input" accept="audio/*,video/*,image/*" style="display:none" />
+          </div>
+          <p class="muted">Você pode gravar diretamente pelo celular ou enviar um arquivo. Visualize antes de confirmar.</p>
+
+          <div id="media-preview" class="media-preview" style="display:none; margin-top:1rem;">
+            <div id="media-preview-area"></div>
+            <div class="preview-controls" style="margin-top:0.5rem; display:flex; gap:0.5rem;">
+              <button type="button" id="confirm-media" class="button">Confirmar mídia</button>
+              <button type="button" id="remove-media" class="button">Remover</button>
+            </div>
+          </div>
       </div>
       <button type="submit" class="button">Enviar depoimento</button>
       <p id="testimonial-message" class="form-message" aria-live="polite"></p>
