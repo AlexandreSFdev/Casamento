@@ -1,14 +1,14 @@
-const rsvpForm = document.querySelector('#rsvp-form');
-const rsvpMessage = document.querySelector('#rsvp-message');
-const giftListContainer = document.querySelector('#gift-list');
-const giftMessage = document.querySelector('#gift-message');
-const testimonialForm = document.querySelector('#testimonial-form');
-const testimonialList = document.querySelector('#testimonial-list');
-const testimonialMessage = document.querySelector('#testimonial-message');
-const galleryForm = document.querySelector('#gallery-form');
-const galleryInput = document.querySelector('#gallery-input');
-const galleryGrid = document.querySelector('#gallery-grid');
-const galleryMessage = document.querySelector('#gallery-message');
+let rsvpForm;
+let rsvpMessage;
+let giftListContainer;
+let giftMessage;
+let testimonialForm;
+let testimonialList;
+let testimonialMessage;
+let galleryForm;
+let galleryInput;
+let galleryGrid;
+let galleryMessage;
 
 const gifts = [
   { id: 'anel', title: 'Conjunto de Aliança', description: 'Alianças de prata com acabamento acetinado.' },
@@ -221,29 +221,71 @@ if (testimonialList) {
 if (galleryGrid) {
   renderGallery();
 }
+function bindPageElements() {
+  rsvpForm = document.querySelector('#rsvp-form');
+  rsvpMessage = document.querySelector('#rsvp-message');
+  giftListContainer = document.querySelector('#gift-list');
+  giftMessage = document.querySelector('#gift-message');
+  testimonialForm = document.querySelector('#testimonial-form');
+  testimonialList = document.querySelector('#testimonial-list');
+  testimonialMessage = document.querySelector('#testimonial-message');
+  galleryForm = document.querySelector('#gallery-form');
+  galleryInput = document.querySelector('#gallery-input');
+  galleryGrid = document.querySelector('#gallery-grid');
+  galleryMessage = document.querySelector('#gallery-message');
 
-if (testimonialForm) {
-  testimonialForm.addEventListener('submit', handleTestimonialSubmit);
+  if (giftListContainer) {
+    giftListContainer.addEventListener('click', handleGiftSelection);
+    renderGiftList();
+  }
+
+  if (testimonialList) renderTestimonials();
+  if (galleryGrid) renderGallery();
+
+  if (testimonialForm) testimonialForm.addEventListener('submit', handleTestimonialSubmit);
+  if (galleryForm) galleryForm.addEventListener('submit', handleGallerySubmit);
+
+  if (rsvpForm) {
+    rsvpForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const nome = rsvpForm.nome.value.trim();
+      const presenca = rsvpForm.presenca.value;
+
+      if (!nome || !presenca) {
+        rsvpMessage.textContent = 'Por favor, preencha todos os campos antes de enviar.';
+        rsvpMessage.style.color = '#ffb0b0';
+        return;
+      }
+
+      rsvpMessage.textContent = `Obrigado, ${nome}! Sua confirmação foi enviada com sucesso.`;
+      rsvpMessage.style.color = '#c5e8c5';
+      rsvpForm.reset();
+    });
+  }
 }
 
-if (galleryForm) {
-  galleryForm.addEventListener('submit', handleGallerySubmit);
+function loadPagePartial(name) {
+  const container = document.getElementById('app');
+  if (!container) return;
+  fetch(`pages/${name}.html`)
+    .then((res) => {
+      if (!res.ok) throw new Error('Não foi possível carregar a página');
+      return res.text();
+    })
+    .then((html) => {
+      container.innerHTML = html;
+      // After inserting HTML, bind interactive elements
+      bindPageElements();
+    })
+    .catch((err) => {
+      container.innerHTML = `<div class="container"><p>Erro ao carregar a página: ${err.message}</p></div>`;
+    });
 }
 
-if (rsvpForm) {
-  rsvpForm.addEventListener('submit', function (event) {
-    event.preventDefault();
-    const nome = rsvpForm.nome.value.trim();
-    const presenca = rsvpForm.presenca.value;
-
-    if (!nome || !presenca) {
-      rsvpMessage.textContent = 'Por favor, preencha todos os campos antes de enviar.';
-      rsvpMessage.style.color = '#ffb0b0';
-      return;
-    }
-
-    rsvpMessage.textContent = `Obrigado, ${nome}! Sua confirmação foi enviada com sucesso.`;
-    rsvpMessage.style.color = '#c5e8c5';
-    rsvpForm.reset();
-  });
+function route() {
+  const hash = location.hash.replace(/^#/, '') || 'home';
+  loadPagePartial(hash);
 }
+
+window.addEventListener('hashchange', route);
+window.addEventListener('load', route);

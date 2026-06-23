@@ -1,0 +1,26 @@
+<section id="rsvp" class="section section-dark">
+  <div class="container">
+    <h2>RSVP</h2>
+    <p>Confirme sua presença e nos ajude a preparar o melhor dia.</p>
+    <form id="rsvp-form" class="form-card">
+      <div class="form-row">
+        <label for="nome">Nome</label>
+        <input type="text" id="nome" name="nome" placeholder="Seu nome" required />
+      </div>
+      <div class="form-row">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="seu@email.com" required />
+      </div>
+      <div class="form-row">
+        <label for="presenca">Presença</label>
+        <select id="presenca" name="presenca" required>
+          <option value="">Selecione</option>
+          <option value="sim">Sim, estarei presente</option>
+          <option value="nao">Não poderei comparecer</option>
+        </select>
+      </div>
+      <button type="submit" class="button">Enviar confirmação</button>
+      <p id="rsvp-message" class="form-message" aria-live="polite"></p>
+    </form>
+  </div>
+</section>

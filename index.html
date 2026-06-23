@@ -7,164 +7,24 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="hero">
-      <div class="hero-overlay"></div>
-      <div class="hero-content">
-        <p class="hero-date">28 de Novembro de 2026</p>
-        <h1>Daniela &amp; Alexandre</h1>
-        <p>Uma celebração de amor, família e amigos.</p>
-        <a href="#detalhes" class="button">Saber mais</a>
+    <nav class="site-nav">
+      <div class="container nav-inner">
+        <a class="brand" href="#home">Daniela &amp; Alexandre</a>
+        <ul class="nav-links">
+          <li><a href="#home">Início</a></li>
+          <li><a href="#detalhes">Detalhes</a></li>
+          <li><a href="#programacao">Programação</a></li>
+          <li><a href="#rsvp">RSVP</a></li>
+          <li><a href="#presentes">Presentes</a></li>
+          <li><a href="#depoimentos">Depoimentos</a></li>
+          <li><a href="#album">Álbum</a></li>
+          <li><a href="#contato">Contato</a></li>
+        </ul>
       </div>
-    </header>
+    </nav>
 
-    <main>
-      <section id="sobre" class="section section-light">
-        <div class="container">
-          <h2>Sobre nós</h2>
-          <p>
-            Nós dois nos conhecemos entre amigos e descobrimos um sonho em comum: construir
-            uma vida repleta de carinho, risadas e companheirismo. Este site foi feito para
-            compartilhar todos os detalhes da celebração da nossa união.
-          </p>
-        </div>
-      </section>
-
-      <section id="detalhes" class="section section-dark">
-        <div class="container grid-2">
-          <div>
-            <h2>O Evento</h2>
-            <p>
-              Esta é uma ocasião especial, por isso chamamos apenas os que de alguma forma 
-            são muito importantes, dessa forma todos os convidados serão padrinhos e 
-            testemunhas da oficialização da nossa união.
-            </p>
-            <ul class="info-list">
-              <li><strong>Data:</strong> 28 de Novembro de 2026</li>
-              <li><strong>Hora:</strong> 16:00</li>
-              <li><strong>Local:</strong> Iate Clube do Recife</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>Como chegar</h3>
-            <p>
-              O local fica na R. Badejo, 4 - Brasília Teimosa, 
-              Recife - PE, 51010-040
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section id="programacao" class="section section-light">
-        <div class="container">
-          <h2>Programação</h2>
-          <div class="timeline">
-            <div class="timeline-item">
-              <span class="timeline-time">16:00</span>
-              <p>Cerimônia</p>
-            </div>
-            <div class="timeline-item">
-              <span class="timeline-time">18:00</span>
-              <p>Recepção e coquetel</p>
-            </div>
-            <div class="timeline-item">
-              <span class="timeline-time">20:00</span>
-              <p>Jantar e festa</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="rsvp" class="section section-dark">
-        <div class="container">
-          <h2>RSVP</h2>
-          <p>Confirme sua presença e nos ajude a preparar o melhor dia.</p>
-          <form id="rsvp-form" class="form-card">
-            <div class="form-row">
-              <label for="nome">Nome</label>
-              <input type="text" id="nome" name="nome" placeholder="Seu nome" required />
-            </div>
-            <div class="form-row">
-              <label for="email">Email</label>
-              <input type="email" id="email" name="email" placeholder="seu@email.com" required />
-            </div>
-            <div class="form-row">
-              <label for="presenca">Presença</label>
-              <select id="presenca" name="presenca" required>
-                <option value="">Selecione</option>
-                <option value="sim">Sim, estarei presente</option>
-                <option value="nao">Não poderei comparecer</option>
-              </select>
-            </div>
-            <button type="submit" class="button">Enviar confirmação</button>
-            <p id="rsvp-message" class="form-message" aria-live="polite"></p>
-          </form>
-        </div>
-      </section>
-
-      <section id="lista-presentes" class="section section-light">
-        <div class="container">
-          <h2>Lista de Presentes</h2>
-          <p>Escolha um presente da nossa lista. Depois de reservado, ele não aparece mais.</p>
-          <div id="gift-message" class="form-message" aria-live="polite"></div>
-          <div id="gift-list" class="gift-grid"></div>
-        </div>
-      </section>
-
-      <section id="depoimentos" class="section section-dark">
-        <div class="container">
-          <h2>Depoimentos</h2>
-          <p>Deixe uma mensagem carinhosa para o casal.</p>
-          <form id="testimonial-form" class="form-card">
-            <div class="form-row">
-              <label for="testimonial-name">Nome</label>
-              <input type="text" id="testimonial-name" name="testimonial-name" placeholder="Seu nome" required />
-            </div>
-            <div class="form-row">
-              <label for="testimonial-text">Depoimento</label>
-              <textarea id="testimonial-text" name="testimonial-text" rows="4" placeholder="Escreva seu depoimento" required></textarea>
-            </div>
-            <button type="submit" class="button">Enviar depoimento</button>
-            <p id="testimonial-message" class="form-message" aria-live="polite"></p>
-          </form>
-          <div id="testimonial-list" class="testimonial-grid"></div>
-        </div>
-      </section>
-
-      <section id="album" class="section section-light">
-        <div class="container">
-          <h2>Grande Álbum</h2>
-          <p>Após a festa, envie suas fotos e crie nosso álbum de lembranças.</p>
-          <form id="gallery-form" class="form-card album-upload">
-            <div class="form-row">
-              <label for="gallery-input">Enviar fotos</label>
-              <input type="file" id="gallery-input" name="gallery-input" accept="image/*" multiple />
-            </div>
-            <button type="submit" class="button">Enviar fotos</button>
-            <p id="gallery-message" class="form-message" aria-live="polite"></p>
-          </form>
-          <div id="gallery-grid" class="gallery-grid"></div>
-        </div>
-      </section>
-
-      <section id="contato" class="section section-light">
-        <div class="container">
-          <h2>Contato</h2>
-          <p>
-            Para dúvidas ou informações adicionais, entre em contato conosco ou com nossos
-            padrinhos.
-          </p>
-          <div class="contact-grid">
-            <div class="contact-card">
-              <h3>Larissa</h3>
-              <p>Whatsapp: (00) 90000-0000</p>
-            </div>
-            <div class="contact-card">
-              <h3>Rafael</h3>
-              <p>Whatsapp: (00) 90000-0000</p>
-            </div>
-          </div>
-        </div>
-      </section>
+    <main id="app" class="app-root">
+      <!-- Conteúdo das páginas será carregado aqui dinamicamente -->
     </main>
 
     <footer class="footer">

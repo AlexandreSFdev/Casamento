@@ -1,0 +1,19 @@
+<section id="depoimentos" class="section section-dark">
+  <div class="container">
+    <h2>Depoimentos</h2>
+    <p>Deixe uma mensagem carinhosa para o casal.</p>
+    <form id="testimonial-form" class="form-card">
+      <div class="form-row">
+        <label for="testimonial-name">Nome</label>
+        <input type="text" id="testimonial-name" name="testimonial-name" placeholder="Seu nome" required />
+      </div>
+      <div class="form-row">
+        <label for="testimonial-text">Depoimento</label>
+        <textarea id="testimonial-text" name="testimonial-text" rows="4" placeholder="Escreva seu depoimento" required></textarea>
+      </div>
+      <button type="submit" class="button">Enviar depoimento</button>
+      <p id="testimonial-message" class="form-message" aria-live="polite"></p>
+    </form>
+    <div id="testimonial-list" class="testimonial-grid"></div>
+  </div>
+</section>

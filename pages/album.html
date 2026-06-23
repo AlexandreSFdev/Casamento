@@ -1,0 +1,15 @@
+<section id="album" class="section section-light">
+  <div class="container">
+    <h2>Grande Álbum</h2>
+    <p>Após a festa, envie suas fotos e crie nosso álbum de lembranças.</p>
+    <form id="gallery-form" class="form-card album-upload">
+      <div class="form-row">
+        <label for="gallery-input">Enviar fotos</label>
+        <input type="file" id="gallery-input" name="gallery-input" accept="image/*" multiple />
+      </div>
+      <button type="submit" class="button">Enviar fotos</button>
+      <p id="gallery-message" class="form-message" aria-live="polite"></p>
+    </form>
+    <div id="gallery-grid" class="gallery-grid"></div>
+  </div>
+</section>
