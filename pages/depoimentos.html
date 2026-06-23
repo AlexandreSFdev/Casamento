@@ -11,6 +11,15 @@
         <label for="testimonial-text">Depoimento</label>
         <textarea id="testimonial-text" name="testimonial-text" rows="4" placeholder="Escreva seu depoimento" required></textarea>
       </div>
+      <div class="form-row">
+        <label>Anexar áudio ou vídeo</label>
+        <div class="media-controls">
+          <button type="button" id="record-audio" class="button">Gravar áudio</button>
+          <button type="button" id="record-video" class="button">Gravar vídeo</button>
+          <input type="file" id="media-input" accept="audio/*,video/*" capture style="display:none" />
+        </div>
+        <p class="muted">Você pode gravar diretamente pelo celular ou enviar um arquivo.</p>
+      </div>
       <button type="submit" class="button">Enviar depoimento</button>
       <p id="testimonial-message" class="form-message" aria-live="polite"></p>
     </form>

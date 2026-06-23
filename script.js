@@ -243,6 +243,47 @@ function bindPageElements() {
   if (galleryGrid) renderGallery();
 
   if (testimonialForm) testimonialForm.addEventListener('submit', handleTestimonialSubmit);
+  // Media recording / upload controls for testimonials
+  const recordAudioBtn = document.getElementById('record-audio');
+  const recordVideoBtn = document.getElementById('record-video');
+  const mediaInput = document.getElementById('media-input');
+
+  if (mediaInput) {
+    mediaInput.addEventListener('change', function (e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      // Save file to IndexedDB and attach to testimonial draft
+      addMediaBlob(file).then((mediaId) => {
+        // store media id temporarily on form dataset
+        testimonialForm.dataset.mediaId = mediaId;
+      });
+    });
+  }
+
+  if (recordAudioBtn) {
+    recordAudioBtn.addEventListener('click', function () {
+      // trigger native file capture on mobile as fallback
+      if (mediaInput) {
+        mediaInput.setAttribute('accept', 'audio/*');
+        mediaInput.setAttribute('capture', 'microphone');
+        mediaInput.click();
+        return;
+      }
+      openRecorder('audio');
+    });
+  }
+
+  if (recordVideoBtn) {
+    recordVideoBtn.addEventListener('click', function () {
+      if (mediaInput) {
+        mediaInput.setAttribute('accept', 'video/*');
+        mediaInput.setAttribute('capture', 'camcorder');
+        mediaInput.click();
+        return;
+      }
+      openRecorder('video');
+    });
+  }
   if (galleryForm) galleryForm.addEventListener('submit', handleGallerySubmit);
 
   if (rsvpForm) {
@@ -262,6 +303,96 @@ function bindPageElements() {
       rsvpForm.reset();
     });
   }
+}
+
+/* IndexedDB helper for media blobs */
+function openMediaDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('wedding-media', 1);
+    req.onupgradeneeded = function (e) {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('media')) {
+        db.createObjectStore('media', { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = function (e) {
+      resolve(e.target.result);
+    };
+    req.onerror = function (e) {
+      reject(e.target.error);
+    };
+  });
+}
+
+function addMediaBlob(file) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const db = await openMediaDB();
+      const tx = db.transaction('media', 'readwrite');
+      const store = tx.objectStore('media');
+      const id = Date.now().toString() + '-' + Math.random().toString(36).slice(2, 9);
+      const record = { id, type: file.type, name: file.name, blob: file };
+      const req = store.add(record);
+      req.onsuccess = function () {
+        resolve(id);
+      };
+      req.onerror = function (e) {
+        reject(e.target.error);
+      };
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+function getMediaUrl(id) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const db = await openMediaDB();
+      const tx = db.transaction('media', 'readonly');
+      const store = tx.objectStore('media');
+      const req = store.get(id);
+      req.onsuccess = function (e) {
+        const rec = e.target.result;
+        if (!rec) return resolve(null);
+        const url = URL.createObjectURL(rec.blob);
+        resolve({ url, type: rec.type, name: rec.name });
+      };
+      req.onerror = function (e) {
+        reject(e.target.error);
+      };
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+/* Simple recorder using MediaRecorder (desktop fallback) */
+function openRecorder(kind) {
+  const constraints = kind === 'video' ? { audio: true, video: true } : { audio: true };
+  navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+    const recorder = new MediaRecorder(stream);
+    const chunks = [];
+    recorder.ondataavailable = (e) => chunks.push(e.data);
+    recorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: chunks[0].type || (kind === 'video' ? 'video/webm' : 'audio/webm') });
+      stream.getTracks().forEach((t) => t.stop());
+      const mediaId = await addMediaBlob(new File([blob], `${kind}-${Date.now()}.${kind === 'video' ? 'webm' : 'webm'}`, { type: blob.type }));
+      if (testimonialForm) testimonialForm.dataset.mediaId = mediaId;
+      alert('Gravação salva. Você pode enviar o depoimento agora.');
+    };
+    recorder.start();
+    const stopAfter = 60 * 1000; // 60s max
+    setTimeout(() => {
+      if (recorder.state !== 'inactive') recorder.stop();
+    }, stopAfter);
+    // prompt user to stop manually
+    if (confirm('Gravação iniciada. Clique OK para parar a gravação (ou aguarde 60s).')) {
+      recorder.stop();
+    }
+  }).catch((err) => {
+    alert('Não foi possível acessar o microfone/câmera: ' + err.message);
+  });
 }
 
 function loadPagePartial(name) {
