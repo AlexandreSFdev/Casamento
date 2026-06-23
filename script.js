@@ -97,18 +97,44 @@ function renderTestimonials() {
         if (!info) return;
         const mediaWrap = document.createElement('div');
         mediaWrap.className = 'testimonial-media';
+
+        const h3 = card.querySelector('h3');
+        const badge = document.createElement('span');
+        badge.className = 'media-badge';
+        badge.textContent = info.type && info.type.startsWith('audio') ? 'Áudio' : 'Vídeo';
+        if (h3) h3.appendChild(badge);
+
+        let mediaEl;
         if (info.type && info.type.startsWith('audio')) {
           const audio = document.createElement('audio');
           audio.controls = true;
           audio.src = info.url;
+          mediaEl = audio;
           mediaWrap.appendChild(audio);
         } else if (info.type && info.type.startsWith('video')) {
           const video = document.createElement('video');
           video.controls = true;
           video.src = info.url;
           video.style.maxWidth = '100%';
+          mediaEl = video;
           mediaWrap.appendChild(video);
         }
+
+        // duration element
+        const durEl = document.createElement('div');
+        durEl.className = 'testimonial-duration';
+        durEl.textContent = 'Duração: --:--';
+        mediaWrap.appendChild(durEl);
+
+        if (mediaEl) {
+          mediaEl.addEventListener('loadedmetadata', () => {
+            const d = Math.floor(mediaEl.duration || 0);
+            const mm = String(Math.floor(d / 60)).padStart(2, '0');
+            const ss = String(d % 60).padStart(2, '0');
+            durEl.textContent = `Duração: ${mm}:${ss}`;
+          });
+        }
+
         card.appendChild(mediaWrap);
       }).catch(() => {});
     }
@@ -436,7 +462,7 @@ function openRecorder(kind) {
     if (overlay) overlay.style.display = 'flex';
     startTimer();
 
-    const stopAfter = 60 * 1000; // 60s max
+    const stopAfter = 180 * 1000; // 180s (3 minutes) max
     const stopTimeout = setTimeout(() => {
       stopRecorder();
     }, stopAfter);

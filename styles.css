@@ -326,6 +326,23 @@ select {
 
 .testimonial-media { margin-top: 0.75rem; }
 
+/* Media badge and duration */
+.media-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+.testimonial-duration {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 .album-upload {
   max-width: 640px;
 }
