@@ -84,6 +84,45 @@ textarea {
   font-size: 1.05rem;
 }
 
+/* Top navigation bar */
+.site-nav {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0;
+}
+.site-nav .brand {
+  font-weight: 700;
+  color: var(--bg-dark);
+  text-decoration: none;
+  font-size: 1.05rem;
+}
+.nav-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.nav-links li a {
+  text-decoration: none;
+  color: var(--text-muted);
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+}
+.nav-links li a:hover {
+  background: var(--surface-strong);
+  color: var(--bg-dark);
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -328,13 +367,20 @@ select {
 
 /* Media badge and duration */
 .media-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   background: var(--accent);
   color: #fff;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
   font-size: 0.75rem;
   margin-left: 0.5rem;
+}
+.media-badge .badge-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  display: inline-block;
 }
 .testimonial-duration {
   display: block;

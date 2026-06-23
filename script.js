@@ -101,7 +101,18 @@ function renderTestimonials() {
         const h3 = card.querySelector('h3');
         const badge = document.createElement('span');
         badge.className = 'media-badge';
-        badge.textContent = info.type && info.type.startsWith('audio') ? 'Áudio' : 'Vídeo';
+        const isAudio = info.type && info.type.startsWith('audio');
+        if (isAudio) {
+          badge.innerHTML = `
+            <svg class="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 11v1a7 7 0 0 1-14 0v-1" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Áudio
+          `;
+        } else {
+          badge.innerHTML = `
+            <svg class="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="6" width="12" height="11" rx="2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15l-4-3v6l4-3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Vídeo
+          `;
+        }
         if (h3) h3.appendChild(badge);
 
         let mediaEl;
@@ -334,6 +345,8 @@ function bindPageElements() {
       openRecorder('video');
     });
   }
+  const exportBtn = document.getElementById('export-media-btn');
+  if (exportBtn) exportBtn.addEventListener('click', exportAllMedia);
   if (galleryForm) galleryForm.addEventListener('submit', handleGallerySubmit);
 
   if (rsvpForm) {
@@ -353,6 +366,43 @@ function bindPageElements() {
       rsvpForm.reset();
     });
   }
+}
+
+function exportAllMedia() {
+  const statusEl = document.getElementById('testimonial-message');
+  (async () => {
+    try {
+      const db = await openMediaDB();
+      const tx = db.transaction('media', 'readonly');
+      const store = tx.objectStore('media');
+      const req = store.getAll();
+      req.onsuccess = function (e) {
+        const all = e.target.result || [];
+        if (!all.length) {
+          alert('Nenhuma mídia encontrada para exportar.');
+          return;
+        }
+        all.forEach((rec) => {
+          const url = URL.createObjectURL(rec.blob);
+          const a = document.createElement('a');
+          const safeName = (rec.name || rec.id).replace(/[^a-zA-Z0-9._-]/g, '_');
+          a.href = url;
+          a.download = `media_${rec.id}_${safeName}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        });
+        if (statusEl) {
+          statusEl.textContent = `Iniciados ${all.length} downloads de mídia para backup.`;
+          statusEl.style.color = '#c5e8c5';
+        }
+      };
+      req.onerror = function () { alert('Falha ao recuperar mídias do IndexedDB.'); };
+    } catch (err) {
+      alert('Erro ao exportar mídias: ' + (err && err.message));
+    }
+  })();
 }
 
 /* IndexedDB helper for media blobs */
