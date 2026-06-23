@@ -9,7 +9,8 @@ let galleryForm;
 let galleryInput;
 let galleryGrid;
 let galleryMessage;
-let pendingMedia = null; // { blob, type, name }
+let pendingMedia = null; // { file, type, name }
+const UPLOAD_ENDPOINT = '/api/upload'; // change if your server is hosted elsewhere (e.g. http://yourhost:3000/api/upload)
 
 const gifts = [
   { id: 'anel', title: 'Conjunto de Aliança', description: 'Alianças de prata com acabamento acetinado.' },
@@ -93,26 +94,65 @@ function renderTestimonials() {
     `;
     testimonialList.appendChild(card);
     // append media player if media is attached
-    if (item.mediaId) {
+    const h3 = card.querySelector('h3');
+    // prefer server URL if present
+    if (item.mediaUrl) {
+      const mediaWrap = document.createElement('div');
+      mediaWrap.className = 'testimonial-media';
+      const badge = document.createElement('span');
+      badge.className = 'media-badge';
+      const isAudio = item.mediaMime && item.mediaMime.startsWith('audio');
+      if (isAudio) {
+        badge.innerHTML = `<svg class="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 11v1a7 7 0 0 1-14 0v-1" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Áudio`;
+      } else {
+        badge.innerHTML = `<svg class="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="6" width="12" height="11" rx="2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15l-4-3v6l4-3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Vídeo`;
+      }
+      if (h3) h3.appendChild(badge);
+
+      let mediaEl;
+      if (isAudio) {
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = item.mediaUrl;
+        mediaEl = audio;
+        mediaWrap.appendChild(audio);
+      } else {
+        const video = document.createElement('video');
+        video.controls = true;
+        video.src = item.mediaUrl;
+        video.style.maxWidth = '100%';
+        mediaEl = video;
+        mediaWrap.appendChild(video);
+      }
+
+      const durEl = document.createElement('div');
+      durEl.className = 'testimonial-duration';
+      durEl.textContent = 'Duração: --:--';
+      mediaWrap.appendChild(durEl);
+
+      if (mediaEl) {
+        mediaEl.addEventListener('loadedmetadata', () => {
+          const d = Math.floor(mediaEl.duration || 0);
+          const mm = String(Math.floor(d / 60)).padStart(2, '0');
+          const ss = String(d % 60).padStart(2, '0');
+          durEl.textContent = `Duração: ${mm}:${ss}`;
+        });
+      }
+
+      card.appendChild(mediaWrap);
+    } else if (item.mediaId) {
       getMediaUrl(item.mediaId).then((info) => {
         if (!info) return;
         const mediaWrap = document.createElement('div');
         mediaWrap.className = 'testimonial-media';
 
-        const h3 = card.querySelector('h3');
         const badge = document.createElement('span');
         badge.className = 'media-badge';
         const isAudio = info.type && info.type.startsWith('audio');
         if (isAudio) {
-          badge.innerHTML = `
-            <svg class="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 11v1a7 7 0 0 1-14 0v-1" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Áudio
-          `;
+          badge.innerHTML = `\n            <svg class="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 11v1a7 7 0 0 1-14 0v-1" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>\n            Áudio\n          `;
         } else {
-          badge.innerHTML = `
-            <svg class="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="6" width="12" height="11" rx="2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15l-4-3v6l4-3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Vídeo
-          `;
+          badge.innerHTML = `\n            <svg class="badge-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="6" width="12" height="11" rx="2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15l-4-3v6l4-3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>\n            Vídeo\n          `;
         }
         if (h3) h3.appendChild(badge);
 
@@ -212,8 +252,10 @@ function handleTestimonialSubmit(event) {
   }
 
   const mediaId = testimonialForm.dataset.mediaId || null;
+  const mediaUrl = testimonialForm.dataset.mediaUrl || null;
+  const mediaMime = testimonialForm.dataset.mediaMime || null;
   const testimonials = getTestimonials();
-  testimonials.push({ id: Date.now().toString(), name, text, mediaId });
+  testimonials.push({ id: Date.now().toString(), name, text, mediaId, mediaUrl, mediaMime });
   setTestimonials(testimonials);
   testimonialForm.reset();
   // clear temporary media reference
@@ -573,11 +615,40 @@ async function confirmPendingMedia() {
   if (!pendingMedia) return alert('Nenhuma mídia para confirmar.');
   try {
     const file = pendingMedia.file;
-    const mediaId = await addMediaBlob(file);
-    if (testimonialForm) testimonialForm.dataset.mediaId = mediaId;
-    if (testimonialMessage) {
-      testimonialMessage.textContent = 'Mídia anexada ao rascunho. Agora envie seu depoimento.';
-      testimonialMessage.style.color = '#c5e8c5';
+    // Try uploading to centralized server first
+    let uploaded = null;
+    try {
+      const fd = new FormData();
+      fd.append('media', file, pendingMedia.name || 'upload');
+      const res = await fetch(UPLOAD_ENDPOINT, { method: 'POST', body: fd });
+      if (res.ok) {
+        uploaded = await res.json();
+      } else {
+        console.warn('Upload failed, status', res.status);
+      }
+    } catch (err) {
+      console.warn('Upload error, falling back to local storage:', err && err.message);
+    }
+
+    if (uploaded && uploaded.url) {
+      // store server URL on form dataset
+      if (testimonialForm) {
+        testimonialForm.dataset.mediaUrl = uploaded.url;
+        testimonialForm.dataset.mediaMime = uploaded.mimeType || uploaded.type || '';
+        testimonialForm.dataset.mediaServerId = uploaded.id || '';
+      }
+      if (testimonialMessage) {
+        testimonialMessage.textContent = 'Mídia enviada ao servidor e anexada ao rascunho. Agora envie seu depoimento.';
+        testimonialMessage.style.color = '#c5e8c5';
+      }
+    } else {
+      // fallback: save to IndexedDB
+      const mediaId = await addMediaBlob(file);
+      if (testimonialForm) testimonialForm.dataset.mediaId = mediaId;
+      if (testimonialMessage) {
+        testimonialMessage.textContent = 'Mídia salva localmente e anexada ao rascunho. Agora envie seu depoimento.';
+        testimonialMessage.style.color = '#c5e8c5';
+      }
     }
     // clear preview but keep form.dataset.mediaId
     const preview = document.getElementById('media-preview');
