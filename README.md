@@ -75,3 +75,16 @@ Notas finais
 ---
 Date: 2026-06-23
 
+Release
+- A tag `v1.1.0` foi criada e está no repositório remoto. Para publicar uma release com notas completas você pode:
+	- Criar via GitHub UI: vá em *Releases* → *Draft a new release* → escolha `v1.1.0` e cole as notas.
+	- Ou, localmente com GitHub CLI (se instalado):
+```bash
+gh release create v1.1.0 --title "v1.1.0 — Media & UX improvements" --notes "Veja o README para o changelog." 
+```
+
+Token de upload (UI)
+- Adicionei um botão "Configurar token de upload" no rodapé do site — clique para salvar um token localmente (usado no header `Authorization: Bearer <token>`). Este token é armazenado no `localStorage` do navegador e não é enviado para o repositório.
+
+Observação final: todos os arquivos e documentação foram commitados e enviados ao remoto. Se desejar, eu posso também criar a release via API caso você me forneça um token temporário com escopo `repo` (opcional).
+

@@ -113,3 +113,15 @@ Se quiser, eu também posso:
 - Configurar GitHub Pages para publicar o site.
 
 Diga qual próximo passo prefere.
+
+---
+
+## Release
+- Uma tag `v1.1.0` foi criada no repositório remoto. Para transformar essa tag em uma release com notas completas:
+  - Pelo GitHub UI: Repositório → *Releases* → *Draft a new release*, selecione a tag `v1.1.0` e adicione as notas.
+  - Ou localmente com `gh` (se instalado):
+```powershell
+gh release create v1.1.0 --title "v1.1.0 — Media & UX improvements" --notes "Changelog: background slideshow, upload progress, token auth, fallback IndexedDB, responsive nav"
+```
+
+Observação: a tentativa automática de criar a release via `gh` falhou no ambiente automatizado; por isso apenas a tag foi criada. Publique a release pelo UI ou usando `gh` local.
