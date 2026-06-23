@@ -91,6 +91,27 @@ function renderTestimonials() {
       <p>${item.text}</p>
     `;
     testimonialList.appendChild(card);
+    // append media player if media is attached
+    if (item.mediaId) {
+      getMediaUrl(item.mediaId).then((info) => {
+        if (!info) return;
+        const mediaWrap = document.createElement('div');
+        mediaWrap.className = 'testimonial-media';
+        if (info.type && info.type.startsWith('audio')) {
+          const audio = document.createElement('audio');
+          audio.controls = true;
+          audio.src = info.url;
+          mediaWrap.appendChild(audio);
+        } else if (info.type && info.type.startsWith('video')) {
+          const video = document.createElement('video');
+          video.controls = true;
+          video.src = info.url;
+          video.style.maxWidth = '100%';
+          mediaWrap.appendChild(video);
+        }
+        card.appendChild(mediaWrap);
+      }).catch(() => {});
+    }
   });
 }
 
@@ -152,10 +173,13 @@ function handleTestimonialSubmit(event) {
     return;
   }
 
+  const mediaId = testimonialForm.dataset.mediaId || null;
   const testimonials = getTestimonials();
-  testimonials.push({ id: Date.now().toString(), name, text });
+  testimonials.push({ id: Date.now().toString(), name, text, mediaId });
   setTestimonials(testimonials);
   testimonialForm.reset();
+  // clear temporary media reference
+  delete testimonialForm.dataset.mediaId;
   renderTestimonials();
 
   if (testimonialMessage) {
@@ -373,22 +397,55 @@ function openRecorder(kind) {
   navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
     const recorder = new MediaRecorder(stream);
     const chunks = [];
+    let timerInterval = null;
+    let seconds = 0;
+    const overlay = document.getElementById('recorder-overlay');
+    const stopBtn = document.getElementById('rec-stop');
+    const timerEl = document.getElementById('rec-timer');
+
+    function startTimer() {
+      seconds = 0;
+      if (timerEl) timerEl.textContent = '00:00';
+      timerInterval = setInterval(() => {
+        seconds += 1;
+        const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
+        const ss = String(seconds % 60).padStart(2, '0');
+        if (timerEl) timerEl.textContent = `${mm}:${ss}`;
+      }, 1000);
+    }
+
+    function stopRecorder() {
+      if (recorder && recorder.state !== 'inactive') recorder.stop();
+      if (timerInterval) clearInterval(timerInterval);
+      if (overlay) overlay.style.display = 'none';
+      stream.getTracks().forEach((t) => t.stop());
+    }
+
     recorder.ondataavailable = (e) => chunks.push(e.data);
     recorder.onstop = async () => {
-      const blob = new Blob(chunks, { type: chunks[0].type || (kind === 'video' ? 'video/webm' : 'audio/webm') });
-      stream.getTracks().forEach((t) => t.stop());
+      const blob = new Blob(chunks, { type: chunks[0]?.type || (kind === 'video' ? 'video/webm' : 'audio/webm') });
       const mediaId = await addMediaBlob(new File([blob], `${kind}-${Date.now()}.${kind === 'video' ? 'webm' : 'webm'}`, { type: blob.type }));
       if (testimonialForm) testimonialForm.dataset.mediaId = mediaId;
-      alert('Gravação salva. Você pode enviar o depoimento agora.');
+      if (testimonialMessage) {
+        testimonialMessage.textContent = 'Mídia gravada com sucesso. Envie o depoimento para publicar.';
+        testimonialMessage.style.color = '#c5e8c5';
+      }
     };
+
     recorder.start();
+    if (overlay) overlay.style.display = 'flex';
+    startTimer();
+
     const stopAfter = 60 * 1000; // 60s max
-    setTimeout(() => {
-      if (recorder.state !== 'inactive') recorder.stop();
+    const stopTimeout = setTimeout(() => {
+      stopRecorder();
     }, stopAfter);
-    // prompt user to stop manually
-    if (confirm('Gravação iniciada. Clique OK para parar a gravação (ou aguarde 60s).')) {
-      recorder.stop();
+
+    if (stopBtn) {
+      stopBtn.onclick = () => {
+        clearTimeout(stopTimeout);
+        stopRecorder();
+      };
     }
   }).catch((err) => {
     alert('Não foi possível acessar o microfone/câmera: ' + err.message);

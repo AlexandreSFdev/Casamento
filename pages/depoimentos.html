@@ -24,5 +24,17 @@
       <p id="testimonial-message" class="form-message" aria-live="polite"></p>
     </form>
     <div id="testimonial-list" class="testimonial-grid"></div>
+
+    <!-- Recorder overlay (hidden until recording) -->
+    <div id="recorder-overlay" class="recorder-overlay" style="display:none;">
+      <div class="recorder-panel">
+        <div class="rec-dot"></div>
+        <div class="rec-info">
+          <strong>Gravando...</strong>
+          <div id="rec-timer">00:00</div>
+        </div>
+        <button id="rec-stop" class="button">Parar gravação</button>
+      </div>
+    </div>
   </div>
 </section>

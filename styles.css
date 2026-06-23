@@ -289,6 +289,43 @@ select {
   color: #f2f4ff;
 }
 
+/* Recorder overlay styles */
+.recorder-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.recorder-panel {
+  background: #fff;
+  color: #111;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.rec-dot {
+  width: 12px;
+  height: 12px;
+  background: #d9534f;
+  border-radius: 50%;
+  box-shadow: 0 0 0 rgba(217,83,79,0.7);
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(217,83,79,0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(217,83,79,0); }
+  100% { box-shadow: 0 0 0 0 rgba(217,83,79,0); }
+}
+.rec-info { display:flex; flex-direction:column; gap:0.25rem; }
+#rec-timer { font-size: 0.9rem; color: #444; }
+
+.testimonial-media { margin-top: 0.75rem; }
+
 .album-upload {
   max-width: 640px;
 }
