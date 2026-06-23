@@ -50,6 +50,28 @@ textarea {
   text-align: center;
 }
 
+/* Background slideshow */
+.bg-slideshow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.bg-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+  filter: grayscale(100%) contrast(0.9) brightness(0.85);
+}
+.bg-slide.active { opacity: 1; }
+
+/* ensure main content is above slideshow */
+.app-root, .site-nav, .footer { position: relative; z-index: 10; }
+
 .hero-overlay {
   position: absolute;
   inset: 0;

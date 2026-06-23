@@ -30,6 +30,20 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 
 // Upload endpoint
 app.post('/api/upload', upload.single('media'), (req, res) => {
+  // Optional token authentication
+  const serverToken = process.env.UPLOAD_TOKEN || null;
+  if (serverToken) {
+    const auth = req.headers['authorization'] || req.headers['x-api-token'];
+    let token = null;
+    if (auth) {
+      if (String(auth).startsWith('Bearer ')) token = String(auth).slice(7);
+      else token = auth;
+    }
+    if (!token || token !== serverToken) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  }
+
   if (!req.file) return res.status(400).json({ error: 'Nenhum arquivo enviado' });
   const url = `/uploads/${req.file.filename}`;
   res.json({ id: req.file.filename, url, originalName: req.file.originalname, mimeType: req.file.mimetype });

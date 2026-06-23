@@ -23,9 +23,17 @@
 
           <div id="media-preview" class="media-preview" style="display:none; margin-top:1rem;">
             <div id="media-preview-area"></div>
-            <div class="preview-controls" style="margin-top:0.5rem; display:flex; gap:0.5rem;">
+            <div class="preview-controls" style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center;">
               <button type="button" id="confirm-media" class="button">Confirmar mídia</button>
               <button type="button" id="remove-media" class="button">Remover</button>
+              <div id="upload-progress" style="display:none; width:220px;">
+                <div style="font-size:0.85rem; margin-bottom:0.25rem;" id="upload-status">Enviando...</div>
+                <progress id="upload-progress-bar" value="0" max="100" style="width:100%;"></progress>
+                <div style="margin-top:0.25rem; display:flex; gap:0.5rem;">
+                  <button type="button" id="retry-upload" class="button" style="display:none;">Tentar novamente</button>
+                  <button type="button" id="cancel-upload" class="button" style="display:none;">Cancelar</button>
+                </div>
+              </div>
             </div>
           </div>
       </div>

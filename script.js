@@ -618,14 +618,16 @@ async function confirmPendingMedia() {
     // Try uploading to centralized server first
     let uploaded = null;
     try {
-      const fd = new FormData();
-      fd.append('media', file, pendingMedia.name || 'upload');
-      const res = await fetch(UPLOAD_ENDPOINT, { method: 'POST', body: fd });
-      if (res.ok) {
-        uploaded = await res.json();
-      } else {
-        console.warn('Upload failed, status', res.status);
-      }
+      uploaded = await uploadWithProgress(file, {
+        onProgress: (pct) => {
+          const prog = document.getElementById('upload-progress');
+          const bar = document.getElementById('upload-progress-bar');
+          const status = document.getElementById('upload-status');
+          if (prog) prog.style.display = 'block';
+          if (bar) bar.value = pct;
+          if (status) status.textContent = `Enviando... ${Math.floor(pct)}%`;
+        }
+      });
     } catch (err) {
       console.warn('Upload error, falling back to local storage:', err && err.message);
     }
@@ -660,6 +662,113 @@ async function confirmPendingMedia() {
     alert('Falha ao salvar mídia: ' + (err && err.message));
   }
 }
+
+function getUploadToken() {
+  // read token from localStorage (set via UI) or window global
+  return localStorage.getItem('uploadToken') || (window.__UPLOAD_TOKEN__ || null);
+}
+
+function setUploadToken(token) {
+  if (!token) {
+    localStorage.removeItem('uploadToken');
+  } else {
+    localStorage.setItem('uploadToken', token);
+  }
+}
+
+function uploadWithProgress(file, opts = {}) {
+  const { onProgress } = opts;
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const url = UPLOAD_ENDPOINT;
+    xhr.open('POST', url, true);
+    const token = getUploadToken();
+    if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+
+    xhr.upload.onprogress = function (e) {
+      if (e.lengthComputable && onProgress) {
+        const percent = (e.loaded / e.total) * 100;
+        onProgress(percent);
+      }
+    };
+    xhr.onerror = function () {
+      // show retry UI
+      showUploadError('Falha na conexão.');
+      reject(new Error('Network error'));
+    };
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try { const json = JSON.parse(xhr.responseText); resolve(json); } catch (e) { resolve(null); }
+      } else if (xhr.status === 401) {
+        showUploadError('Não autorizado. Verifique o token.');
+        reject(new Error('Unauthorized'));
+      } else {
+        showUploadError('Erro no servidor: ' + xhr.status);
+        reject(new Error('Upload failed ' + xhr.status));
+      }
+    };
+    const fd = new FormData();
+    fd.append('media', file, pendingMedia.name || 'upload');
+    xhr.send(fd);
+  });
+}
+
+function showUploadError(message) {
+  const status = document.getElementById('upload-status');
+  const retry = document.getElementById('retry-upload');
+  const cancel = document.getElementById('cancel-upload');
+  if (status) status.textContent = message;
+  if (retry) retry.style.display = 'inline-flex';
+  if (cancel) cancel.style.display = 'inline-flex';
+  // bind retry
+  if (retry) retry.onclick = () => {
+    retry.style.display = 'none';
+    cancel.style.display = 'none';
+    // reattempt
+    confirmPendingMedia();
+  };
+  if (cancel) cancel.onclick = () => { clearPendingMedia(); };
+}
+
+// add simple token configure UI binding (footer button must exist)
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.getElementById('configure-token');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const current = getUploadToken() || '';
+    const val = prompt('Insira o token de upload (deixe vazio para remover):', current || '');
+    if (val === null) return; // cancelled
+    setUploadToken(val.trim());
+    alert(val ? 'Token salvo localmente.' : 'Token removido.');
+  });
+});
+
+// Background slideshow init
+function initBackgroundSlideshow() {
+  const container = document.getElementById('bg-slideshow');
+  if (!container) return;
+  const items = getGalleryItems();
+  container.innerHTML = '';
+  if (!items || items.length === 0) return;
+  items.forEach((it, i) => {
+    const el = document.createElement('div');
+    el.className = 'bg-slide';
+    el.style.backgroundImage = `url(${it.dataUrl})`;
+    if (i === 0) el.classList.add('active');
+    container.appendChild(el);
+  });
+  let idx = 0;
+  setInterval(() => {
+    const slides = container.querySelectorAll('.bg-slide');
+    if (!slides.length) return;
+    slides[idx].classList.remove('active');
+    idx = (idx + 1) % slides.length;
+    slides[idx].classList.add('active');
+  }, 5000);
+}
+
+// call initially and after gallery updates
+document.addEventListener('DOMContentLoaded', initBackgroundSlideshow);
 
 /* Navigation hamburger toggle */
 document.addEventListener('DOMContentLoaded', function () {
